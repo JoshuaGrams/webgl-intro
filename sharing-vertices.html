@@ -7,6 +7,9 @@
 	<script src="game-mode.js"></script>
 	<script src="vector.js"></script>
 	<script src="webgl.js"></script>
+
+	<link rel="stylesheet" href="highlight.css">
+	<script src="highlight.js"></script>
 </head>
 <body>
 
@@ -27,7 +30,7 @@ precision mediump float;
 void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
 	</script>
 
-	<script>
+	<script id="program">
 (function() {
 	'use strict';
 
@@ -83,6 +86,9 @@ void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
 
 })();
 	</script>
+
+	<script>var sources = ['vertex', 'fragment', 'program']</script>
+	<script src="highlight-sources.js"></script>
 
 </body>
 </html>

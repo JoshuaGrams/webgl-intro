@@ -7,6 +7,9 @@
 	<script src="game-mode.js"></script>
 	<script src="vector.js"></script>
 	<script src="webgl.js"></script>
+
+	<link rel="stylesheet" href="highlight.css">
+	<script src="highlight.js"></script>
 </head>
 <body>
 
@@ -26,12 +29,8 @@ void main(void) { gl_Position = vec4(x, 0, 1); }
 void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
 	</script>
 
-	<script>
+	<script id="program">
 (function() {
-	'use strict';
-
-	// -------------------------------------------------------------------
-
 	var gl = WebGL.initialize('main');
 
 	var w = 2.0, h = 2.0;
@@ -42,7 +41,7 @@ void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
 		shader: new WebGL.ShaderFromElements(gl,
 					'vertex', 'fragment', gl.TRIANGLES, [], ['vec2 x']),
 		positions: [[left/2, top/2], [right/2, top/2],[left/2, bottom/2],
-		            [left/2, bottom/2], [right/2, top/2], [right/2, bottom/2]],
+					[left/2, bottom/2], [right/2, top/2], [right/2, bottom/2]],
 	};
 
 	var functions = {
@@ -60,9 +59,11 @@ void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
 	}
 
 	go();
-
 })();
 	</script>
+
+	<script>var sources = ['vertex', 'fragment', 'program']</script>
+	<script src="highlight-sources.js"></script>
 
 </body>
 </html>
