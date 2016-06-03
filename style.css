@@ -7,6 +7,10 @@ html, body {
 
 #main { display: block;  margin: 2em auto; }
 
+ol, p { width: 80ex; margin-left: auto; margin-right: auto; }
+
+ol { padding-left: 3em; }
+
 tr, td { vertical-align: top; }
 .source { width: 80%; margin: 0.5em auto; padding: 0.5em; border-radius: 0.5em; background: #333; }
 .source table { width: 100%; }

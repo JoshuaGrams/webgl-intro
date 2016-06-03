@@ -13,6 +13,24 @@
 </head>
 <body>
 
+	<p>Your application can send arbitrary per-vertex attributes to the vertex
+	shader. We'll start with just a 2D position.  OpenGL renders only the parts
+	of triangles which fall in the cube extending from -1 to 1 on all three axes
+	(centered at 0).  It defaults to a right-handed coordinate system with the
+	x-axis pointing to the right, the y-axis pointing up, and the z-axis
+	pointing out of the screen toward you.</p>
+
+	<p>Our vertex shader converts the 2D position into a 4D one, since OpenGL
+	takes 3D vertices with a 1 tacked onto the end as a fourth coordinate.  The
+	x, y, and z coordinates will be divided by the fourth one (&ldquo;w&rdquo;)
+	to allow perspective projections (where objects need to be scaled down as
+	they get farther away).</p>
+
+	<p>The fragment shader sets every pixel to the same color.</p>
+
+	<p>Then the program clears the framebuffer to a dark blue and executes the
+	shader with the position data.</p>
+
 	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
 
 	<p class="center">
@@ -21,8 +39,8 @@
 	</p>
 
 	<script id="vertex" type="x-shader/x-vertex">
-attribute vec2 x;
-void main(void) { gl_Position = vec4(x, 0, 1); }
+attribute vec2 p;
+void main(void) { gl_Position = vec4(p, 0, 1); }
 	</script>
 
 	<script id="fragment" type="x-shader/x-fragment">
@@ -30,36 +48,22 @@ void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
 	</script>
 
 	<script id="program">
-(function() {
-	var gl = WebGL.initialize('main');
+'use strict';
 
-	var w = 2.0, h = 2.0;
-	var	left = -w/2, right = w/2; 
-	var bottom = -h/2, top = h/2;
+var gl = WebGL.initialize('main');
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+gl.enable(gl.BLEND);
 
-	var state = {
-		shader: new WebGL.ShaderFromElements(gl,
-					'vertex', 'fragment', gl.TRIANGLES, [], ['vec2 x']),
-		positions: [[left/2, top/2], [right/2, top/2],[left/2, bottom/2],
-					[left/2, bottom/2], [right/2, top/2], [right/2, bottom/2]],
-	};
+// Left/right top/bottom of visible area.
+var l = -1, r = 1,  b = -1, t = 1;
 
-	var functions = {
-		draw: function(state, utils) {
-			WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
-			var vertices = [M.flatten(state.positions)];
-			state.shader.exec({}, vertices, state.positions.length);
-		}
-	}
+var shader = new WebGL.ShaderFromElements(gl, 'vertex', 'fragment',
+			gl.TRIANGLES, [], ['vec2 p']);
+var positions = [[l/3, t/3], [r/3, t/3],[l/3, b/3],
+				[l/3, b/3], [r/3, t/3], [r/3, b/3]];
 
-	function go() {
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-		new GameMode(state, functions, gl.canvas);
-	}
-
-	go();
-})();
+WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
+shader.exec({}, [M.flatten(positions)], positions.length);
 	</script>
 
 	<script>var sources = ['vertex', 'fragment', 'program']</script>
