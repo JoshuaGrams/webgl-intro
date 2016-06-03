@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title>WebGL - Solid Quad</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="game-mode.js"></script>
+	<script src="vector.js"></script>
+	<script src="webgl.js"></script>
+</head>
+<body>
+
+	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
+
+	<p class="center">
+	&lt;&lt; [<a href="index.html">Index</a>]
+	[<a href="sharing-vertices.html">Sharing Vertices</a>] &gt;&gt;
+	</p>
+
+	<script id="vertex" type="x-shader/x-vertex">
+attribute vec2 x;
+void main(void) { gl_Position = vec4(x, 0, 1); }
+	</script>
+
+	<script id="fragment" type="x-shader/x-fragment">
+void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
+	</script>
+
+	<script>
+(function() {
+	'use strict';
+
+	// -------------------------------------------------------------------
+
+	var gl = WebGL.initialize('main');
+
+	var w = 2.0, h = 2.0;
+	var	left = -w/2, right = w/2; 
+	var bottom = -h/2, top = h/2;
+
+	var state = {
+		shader: new WebGL.ShaderFromElements(gl,
+					'vertex', 'fragment', gl.TRIANGLES, [], ['vec2 x']),
+		positions: [[left/2, top/2], [right/2, top/2],[left/2, bottom/2],
+		            [left/2, bottom/2], [right/2, top/2], [right/2, bottom/2]],
+	};
+
+	var functions = {
+		draw: function(state, utils) {
+			WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
+			var vertices = [M.flatten(state.positions)];
+			state.shader.exec({}, vertices, state.positions.length);
+		}
+	}
+
+	function go() {
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		new GameMode(state, functions, gl.canvas);
+	}
+
+	go();
+
+})();
+	</script>
+
+</body>
+</html>

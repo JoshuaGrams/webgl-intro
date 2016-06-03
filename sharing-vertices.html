@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title>WebGL - Indexed Drawing</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="game-mode.js"></script>
+	<script src="vector.js"></script>
+	<script src="webgl.js"></script>
+</head>
+<body>
+
+	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
+
+	<p class="center">
+	&lt;&lt; [<a href="solid-quad.html">Solid Quad</a>]
+	[<a href="textured-quad.html">Textured Quad</a>] &gt;&gt;
+	</p>
+
+	<script id="vertex" type="x-shader/x-vertex">
+attribute vec2 x;
+void main(void) { gl_Position = vec4(x, 0, 1); }
+	</script>
+
+	<script id="fragment" type="x-shader/x-fragment">
+precision mediump float;
+void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
+	</script>
+
+	<script>
+(function() {
+	'use strict';
+
+	// -------------------------------------------------------------------
+
+	var gl = WebGL.initialize('main');
+
+	var w = 2.0, h = 2.0;
+	var	left = -w/2, right = w/2; 
+	var bottom = -h/2, top = h/2;
+
+	var state = {
+		shader: new WebGL.ShaderFromElements(gl,
+					'vertex', 'fragment', gl.TRIANGLES, [], ['vec2 x', 'indices']),
+		positions: [],
+		indices: [],
+		vertexCount: 0
+	};
+
+	var functions = {
+		draw: function(state, utils) {
+			WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
+			var vertices = [M.flatten(state.positions), state.indices];
+			state.shader.exec({}, vertices, state.indices.length);
+		}
+	}
+
+	function circle(c, r, n) {
+		var ry = r * gl.drawingBufferWidth / gl.drawingBufferHeight;
+		var center = state.positions.length;  state.positions.push(c);
+		var points = state.positions.length;
+		for(var i=0; i<n; ++i) {
+			var angle = i * 2*Math.PI / n;
+			var x = r  * Math.cos(angle);
+			var y = ry * Math.sin(angle);
+			state.positions.push([x+c[0], y+c[1]]);
+		}
+		for(var i=0; i<n; ++i) {
+			state.indices.push(center, points+i, points+i+1);
+		}
+		state.indices[state.indices.length-1] = center+1;
+	}
+
+	function go() {
+		circle([0.1, -0.3], 0.2, 100);
+		circle([-0.3, 0.7], 0.05, 50);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		new GameMode(state, functions, gl.canvas);
+	}
+
+	go();
+
+})();
+	</script>
+
+</body>
+</html>
