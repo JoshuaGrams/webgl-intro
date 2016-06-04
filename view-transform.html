@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title>WebGL - View Transform</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="game-mode.js"></script>
+	<script src="vector.js"></script>
+	<script src="webgl.js"></script>
+
+	<link rel="stylesheet" href="highlight.css">
+	<script src="highlight.js"></script>
+	<script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
+</head>
+<body>
+
+	<p>To use pixel coordinates, we need a view transformation.  These are
+	implemented as matrices which are multiplied with the vertex positions to
+	transform them. A matrix consists of several vectors, giving the new
+	direction and size for each axis. To multiply a matrix by a vector, you
+	simply multiply and sum the components, going <code>x</code> units in the
+	new x direction, <code>y</code> units in the new y direction, etc.</p>
+
+	$$\begin{pmatrix}x &amp; y &amp; z &amp; 1\end{pmatrix}
+	\begin{bmatrix}
+		x_x &amp; x_y &amp; x_z \\
+		y_x &amp; y_y &amp; y_z \\
+		z_x &amp; z_y &amp; z_z \\
+		x_0 &amp; y_0 &amp; z_0
+	\end{bmatrix}
+	= x\begin{pmatrix}x_x &amp; x_y &amp;  x_z\end{pmatrix}
+	+ y\begin{pmatrix}y_x &amp; y_y &amp; y_z\end{pmatrix}
+	+ z\begin{pmatrix}z_x &amp; z_y &amp; z_z\end{pmatrix}
+	+ 1\begin{pmatrix}x_0 &amp; y_0 &amp; z_0\end{pmatrix}$$
+
+	<p>If we leave 0 at the center, then we just need to divide the (2D) pixel
+	coordinates by width and height respectively, and then multiply by 2 (the
+	distance from -1 to 1), which gives us the following matrix.</p>
+
+	$$\begin{bmatrix}
+		2/w &amp; 0 &amp; 0 \\
+		0 &amp; 2/h &amp; 0 \\
+		0 &amp; 0 &amp; 0
+	\end{bmatrix}$$
+
+	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
+
+	<p class="center">
+	&lt;&lt; [<a href="pixel-attributes.html">Per-Pixel Attributes</a>]
+	[<a href="./">Index</a>]
+	[<a href="textured-quad.html">Textured Quad</a>] &gt;&gt;
+	</p>
+
+	<script id="vertex" type="x-shader/x-vertex">
+attribute vec2 p;
+uniform mat3 view;
+void main(void) { gl_Position = vec4(vec3(p, 1) * view, 1); }
+	</script>
+
+	<script id="fragment" type="x-shader/x-fragment">
+void main(void) { gl_FragColor = vec4(0.2, 0.6, 1, 1); }
+	</script>
+
+	<script id="program">
+'use strict';
+
+var gl = WebGL.initialize('main');
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+gl.enable(gl.BLEND);
+
+// Left/right top/bottom of rectangle.
+var halfW = gl.drawingBufferWidth/2, halfH = gl.drawingBufferHeight/2;
+var l = -halfW/3, r = halfW/3;
+var b = -halfH/3, t = halfH/3;
+
+var shader = new WebGL.ShaderFromElements(gl, 'vertex', 'fragment',
+			gl.TRIANGLES, ['mat3 view'], ['vec2 p', 'indices']);
+var positions = [[l, t], [r, t], [l, b], [r, b]];
+var indices = [0, 1, 2,  1, 2, 3];
+
+var view = [
+	[2/gl.drawingBufferWidth, 0, 0],
+	[0, 2/gl.drawingBufferHeight, 0],
+	[0, 0, 0]
+];
+
+WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
+shader.exec({view: view}, [M.flatten(positions), indices], indices.length);
+	</script>
+
+	<script>var sources = ['vertex', 'fragment', 'program']</script>
+	<script src="highlight-sources.js"></script>
+
+</body>
+</html>

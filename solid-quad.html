@@ -22,9 +22,10 @@
 
 	<p>Our vertex shader converts the 2D position into a 4D one, since OpenGL
 	takes 3D vertices with a 1 tacked onto the end as a fourth coordinate.  The
-	x, y, and z coordinates will be divided by the fourth one (&ldquo;w&rdquo;)
-	to allow perspective projections (where objects need to be scaled down as
-	they get farther away).</p>
+	fourth coordinate allows us to implement translations as a matrix
+	multiplication.  It also allows perspective projections (where objects need
+	to be scaled down as they get farther away) since OpenGL will divide x, y,
+	and z by the fourth coordinate (&ldquo;w&rdquo;) at the end.</p>
 
 	<p>The fragment shader sets every pixel to the same color.</p>
 
@@ -34,7 +35,7 @@
 	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
 
 	<p class="center">
-	&lt;&lt; [<a href="index.html">Index</a>]
+	&lt;&lt; [<a href="./">Index</a>]
 	[<a href="sharing-vertices.html">Sharing Vertices</a>] &gt;&gt;
 	</p>
 
