@@ -13,6 +13,21 @@
 </head>
 <body>
 
+	<p>2D texture coordinates have the origin at the top left as is normal for
+	images.  But they range from 0 to 1 in each direction instead of being pixel
+	coordinates.  In general, texture dimensions should be powers of two (not
+	necessarily square, but each dimension should be a power of two).  WebGL has
+	a limited ability to handle non-power-of-two textures, but you lose some
+	ability to tile and filter the texture.</p>
+
+	<p>In the fragment shader, we declare a <code>uniform sampler2D</code>
+	variable and use the <code>texture2D</code> function to access it.  One
+	quirk on the application side is that you set the variable to the number of
+	a &ldquo;texture unit&rdquo; rather than passing the texture ID directly.
+	And you <em>might</em> want to bind a texture to different texture units for
+	different draw calls.  So to set the variable you have to give both the
+	texture ID and the texture unit to which you want to bind it.</p>
+
 	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
 
 	<p class="center">
@@ -59,11 +74,11 @@ var b = -h/2, t = h/2;
 
 var shader = new WebGL.ShaderFromElements(gl,
 			'vertex', 'fragment', gl.TRIANGLE_STRIP,
-			['mat3 view', 'texture2D cloud'],
+			['mat3 view', 'sampler2D cloud'],
 			['vec2 x', 'vec2 tex', 'indices']);
-var view = [[2.0/gl.canvas.width, 0, 0],
-		  [0, 2.0/gl.canvas.height, 0],
-		  [0, 0, 1]];
+var view = [[2.0/gl.drawingBufferWidth, 0, 0],
+		  [0, 2.0/gl.drawingBufferHeight, 0],
+		  [0, 0, 0]];
 var positions = [[r/2, t/2], [l/2, t/2], [r/2, b/2], [l/2, b/2]];
 var uvs = [[1, 0], [0, 0], [1, 1], [0, 1]];
 var indices = [0, 1, 2, 3];
@@ -71,9 +86,9 @@ var indices = [0, 1, 2, 3];
 var cloud, cloudImage = WebGL.loadImage("cloud.png");
 WebGL.images.whenLoaded(go);
 function go() {
-	cloud = new WebGL.Texture(gl, 0, cloudImage, gl.RGBA);
+	cloud = new WebGL.Texture(gl, cloudImage, gl.RGBA);
 	WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
-	var values = {view: view, cloud: cloud};
+	var values = {view: view, cloud: [cloud, 0]};
 	var vertices = [M.flatten(positions), M.flatten(uvs), indices];
 	shader.exec(values, vertices, indices.length);
 }

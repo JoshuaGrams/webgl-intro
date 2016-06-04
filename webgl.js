@@ -98,7 +98,7 @@ var WebGL = {};
 	WebGL.TypeInfo = {
 		'int': { size: 4, type: WebGL.INT, count: 1,
 			abbrev: 'i', array: Int32Array }
-		,'texture2D': { size: 1, type: WebGL.INT, count: 1,
+		,'sampler2D': { size: 1, type: WebGL.INT, count: 1,
 			abbrev: 'i', array: Int32Array, texture: true }
 		,'byte-indices': { size: 1, type: WebGL.UNSIGNED_BYTE,
 			array: Uint8Array, binding: WebGL.ELEMENT_ARRAY_BUFFER }
@@ -254,28 +254,28 @@ var WebGL = {};
 		if(matrix !== '') {
 			this.set = function(gl, value) { gl[fn](this.loc, false, M.flattenTranspose(value)); }
 		} else if(type.texture) {
-			this.set = function(gl, value) { value.set(gl, this.loc); }
+			this.set = function(gl, value) { WebGL.setTexture(gl, this.loc, value[0], value[1]); }
 		} else this.set = function(gl, value) { gl[fn](this.loc, value); }
 	}
 
 	// The `format` is generally gl.RGBA or gl.RGB.
 	// May fail if image dimensions are not powers of two.
-	WebGL.Texture = function(gl, texunit, image, format) {
-		this.id = gl.createTexture();  WebGL.check(gl);
-		this.unit = texunit;
-		gl.activeTexture(gl.TEXTURE0 + texunit);  WebGL.check(gl);
+	WebGL.Texture = function(gl, image, format) {
+		var texture = gl.createTexture();  WebGL.check(gl);
+		gl.activeTexture(gl.TEXTURE0);  WebGL.check(gl);
 		var bp = gl.TEXTURE_2D;  // binding point
-		gl.bindTexture(bp, this.id);
+		gl.bindTexture(bp, texture);
 		gl.texImage2D(bp, 0, format, format, gl.UNSIGNED_BYTE, image);  WebGL.check(gl);
 		gl.texParameteri(bp, gl.TEXTURE_MAG_FILTER, gl.LINEAR);  WebGL.check(gl);
 		gl.texParameteri(bp, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  WebGL.check(gl);
 		gl.generateMipmap(bp);  WebGL.check(gl);
+		return texture;
 	}
 
-	WebGL.Texture.prototype.set = function(gl, loc) {
-		gl.activeTexture(gl.TEXTURE0 + this.unit);
-		gl.bindTexture(gl.TEXTURE_2D, this.id);
-		gl.uniform1i(loc, this.unit);
+	WebGL.setTexture = function(gl, loc, texture, unit) {
+		gl.activeTexture(gl.TEXTURE0 + unit);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.uniform1i(loc, unit);
 	}
 
 	// -------------------------------------------------------------------
