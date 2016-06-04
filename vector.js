@@ -37,6 +37,16 @@ var V = {}, M = {};
 		for(var i=0; i<m.length; ++i) a.push.apply(a, m[i]);
 		return a;
 	}
+	M.flattenTranspose = function(m) {
+		a = [];
+		var r = m[0].length, s = m.length;
+		for(var i=0; i<r; ++i) {
+			for(var j=0; j<s; ++j) {
+				a.push(m[j][i]);
+			}
+		}
+		return a;
+	}
 
 	V.cross = function(u, v) {
 		return [ u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0] ];

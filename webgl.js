@@ -252,7 +252,7 @@ var WebGL = {};
 		if(type.matrix) { count = Math.sqrt(count);  matrix = 'Matrix'; }
 		var fn = 'uniform' + matrix + count + typeAbbrev + v;
 		if(matrix !== '') {
-			this.set = function(gl, value) { gl[fn](this.loc, false, M.flatten(value)); }
+			this.set = function(gl, value) { gl[fn](this.loc, false, M.flattenTranspose(value)); }
 		} else if(type.texture) {
 			this.set = function(gl, value) { value.set(gl, this.loc); }
 		} else this.set = function(gl, value) { gl[fn](this.loc, value); }
