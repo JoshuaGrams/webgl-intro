@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title>WebGL - Textured Quad</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="game-mode.js"></script>
+	<script src="vector.js"></script>
+	<script src="webgl.js"></script>
+
+	<link rel="stylesheet" href="highlight.css">
+	<script src="highlight.js"></script>
+</head>
+<body>
+
+	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
+
+	<script id="vertex" type="x-shader/x-vertex">
+attribute vec2 x, tex;
+
+varying vec2 uv;
+
+uniform mat3 view;
+
+void main(void) {
+	uv = tex;
+	gl_Position = vec4(vec3(x, 1) * view, 1);
+}
+	</script>
+
+	<script id="fragment" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec2 uv;
+
+uniform sampler2D img;
+
+uniform float distortion;
+vec2 center = vec2(0.5, 0.5);
+
+void main(void) {
+	vec2 offset = uv - center;
+	float dist = length(offset);
+	vec2 dir = offset / dist;
+	dist *= 1.0 - 0.9 / (1.0 + distortion * pow(dist, 6.0));
+	gl_FragColor = texture2D(img, center + dist * dir);
+}
+	</script>
+
+	<script id="program">
+'use strict';
+
+var gl = WebGL.initialize('main');
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+gl.enable(gl.BLEND);
+
+var w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+var aspect = w / h;
+var	l = -w/2, r = w/2;
+var b = -h/2, t = h/2;
+
+var texCenter = [0.5, 0.5];
+var texHalfSize = [0.5, 0.5];
+
+var texLeft = texCenter[0] - texHalfSize[0];
+var texRight = texCenter[0] + texHalfSize[0];
+
+var texBottom = texCenter[1] - texHalfSize[1];
+var texTop = texCenter[1] + texHalfSize[1];
+
+var shader = new WebGL.ShaderFromElements(gl,
+			'vertex', 'fragment', gl.TRIANGLE_STRIP,
+			['mat3 view', 'sampler2D img', 'float distortion'],
+			['vec2 x', 'vec2 tex', 'indices']);
+var view = [[2.0/gl.drawingBufferWidth, 0, 0],
+		  [0, 2.0/gl.drawingBufferHeight, 0],
+		  [0, 0, 0]];
+var positions = [[r, t], [l, t], [r, b], [l, b]];
+var uvs = [[texRight, texTop], [texLeft, texTop], [texRight, texBottom], [texLeft, texBottom]];
+var indices = [0, 1, 2, 3];
+
+
+var lastTime;
+var functions = {
+	draw: function(distortion) {
+		WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
+		var values = {view: view, img: [texture, 0], distortion: distortion};
+		var vertices = [M.flatten(positions), M.flatten(uvs), indices];
+		shader.exec(values, vertices, indices.length);
+	}
+	,step: function(seconds, distortion) {
+		return Math.min(1200, distortion * 1.15);
+	}
+}
+
+var texture, image = WebGL.loadImage("birdsong.png");
+WebGL.images.whenLoaded(go);
+function go() {
+	texture = new WebGL.Texture(gl, image, gl.RGBA, true);
+	new GameMode(0.02, functions, document.getElementById('main'));
+}
+	</script>
+
+	<script>var sources = ['vertex', 'fragment', 'program']</script>
+	<script src="highlight-sources.js"></script>
+
+</body>
+</html>
