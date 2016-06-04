@@ -40,10 +40,8 @@ vec2 center = vec2(0.5, 0.5);
 
 void main(void) {
 	vec2 offset = uv - center;
-	float dist = length(offset);
-	vec2 dir = offset / dist;
-	dist *= 1.0 - 0.9 / (1.0 + distortion * pow(dist, 6.0));
-	gl_FragColor = texture2D(img, center + dist * dir);
+	float stretch = 1.0 - 0.9 / (1.0 + distortion * pow(length(offset), 6.0));
+	gl_FragColor = texture2D(img, center + offset * stretch);
 }
 	</script>
 
@@ -80,7 +78,6 @@ var uvs = [[texRight, texTop], [texLeft, texTop], [texRight, texBottom], [texLef
 var indices = [0, 1, 2, 3];
 
 
-var lastTime;
 var functions = {
 	draw: function(distortion) {
 		WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
@@ -88,8 +85,8 @@ var functions = {
 		var vertices = [M.flatten(positions), M.flatten(uvs), indices];
 		shader.exec(values, vertices, indices.length);
 	}
-	,step: function(seconds, distortion) {
-		return Math.min(1200, distortion * 1.15);
+	,step: function(distortion) {
+		return Math.min(1200, distortion * 1.015);
 	}
 }
 

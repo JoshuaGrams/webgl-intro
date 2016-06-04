@@ -4,7 +4,7 @@ var GameMode = (function() {
 	/*
 	 * functions:
 	 * 	draw(state, utils)  (REQUIRED)
-	 * 	state step(secondsSinceCreated, state, utils)
+	 * 	state step(state, secondsSinceCreated, utils)
 	 * 	state key(keyString, state, utils)
 	 * 	state mouse(x, y, type, state, utils)
 	 * 	flag stop(state, utils)  (should we stop?)
