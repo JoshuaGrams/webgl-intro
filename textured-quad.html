@@ -55,10 +55,7 @@ varying vec2 uv;
 
 uniform sampler2D cloud;
 
-void main(void) {
-	vec4 c = texture2D(cloud, uv);
-	gl_FragColor = vec4(c.rgb * c.a, c.a);
-}
+void main(void) { gl_FragColor = texture2D(cloud, uv); }
 	</script>
 
 	<script id="program">
