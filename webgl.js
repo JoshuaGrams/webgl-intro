@@ -1,6 +1,7 @@
 // WebGL interface
 
 var WebGL = {};
+
 (function() {
 	'use strict';
 
@@ -260,15 +261,20 @@ var WebGL = {};
 
 	// The `format` is generally gl.RGBA or gl.RGB.
 	// May fail if image dimensions are not powers of two.
-	WebGL.Texture = function(gl, image, format) {
+	WebGL.Texture = function(gl, image, format, nearest) {
 		var texture = gl.createTexture();  WebGL.check(gl);
 		gl.activeTexture(gl.TEXTURE0);  WebGL.check(gl);
 		var bp = gl.TEXTURE_2D;  // binding point
 		gl.bindTexture(bp, texture);
 		gl.texImage2D(bp, 0, format, format, gl.UNSIGNED_BYTE, image);  WebGL.check(gl);
-		gl.texParameteri(bp, gl.TEXTURE_MAG_FILTER, gl.LINEAR);  WebGL.check(gl);
-		gl.texParameteri(bp, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  WebGL.check(gl);
-		gl.generateMipmap(bp);  WebGL.check(gl);
+		if(nearest) {
+			gl.texParameteri(bp, gl.TEXTURE_MAG_FILTER, gl.NEAREST);  WebGL.check(gl);
+			gl.texParameteri(bp, gl.TEXTURE_MIN_FILTER, gl.NEAREST);  WebGL.check(gl);
+		} else {
+			gl.texParameteri(bp, gl.TEXTURE_MAG_FILTER, gl.LINEAR);  WebGL.check(gl);
+			gl.texParameteri(bp, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);  WebGL.check(gl);
+			gl.generateMipmap(bp);  WebGL.check(gl);
+		}
 		return texture;
 	}
 
