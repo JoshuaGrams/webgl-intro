@@ -63,8 +63,8 @@ var texHalfSize = [0.5, 0.5];
 var texLeft = texCenter[0] - texHalfSize[0];
 var texRight = texCenter[0] + texHalfSize[0];
 
-var texBottom = texCenter[1] - texHalfSize[1];
-var texTop = texCenter[1] + texHalfSize[1];
+var texBottom = texCenter[1] + texHalfSize[1];
+var texTop = texCenter[1] - texHalfSize[1];
 
 var shader = new WebGL.ShaderFromElements(gl,
 			'vertex', 'fragment', gl.TRIANGLE_STRIP,
