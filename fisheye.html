@@ -15,7 +15,15 @@
 
 	<p>This is the fisheye effect from <a href="http://ludumdare.com/compo/ludum-dare-31/?action=preview&uid=3479">Birdsong</a>, Daniel Linssen's winning entry in Ludum Dare 31.  Use the arrow keys to move the center of the distortion around.</p>
 
+	<p>For comparison, I have written <a href="fisheye-no-wrapper.html">a
+	version in straight WebGL</a> without using my wrapper code.</p>
+
 	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
+
+	<p class="center">
+	&lt;&lt; [<a href="textured-quad.html">Textured Quad</a>]
+	[<a href="fisheye-no-wrapper.html">Fisheye (straight WebGL)</a>] &gt;&gt;
+	</p>
 
 	<script id="vertex" type="x-shader/x-vertex">
 attribute vec2 x, tex;
@@ -83,7 +91,6 @@ var initialState = { distortion: 0.02, center: [0.579, 0.275] };
 
 var functions = {
 	draw: function(state) {
-		WebGL.clear(gl, [0.05, 0.05, 0.2, 1]);
 		var values = {
 			view: view,
 			img: [texture, 0],

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title>WebGL - Textured Quad</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="game-mode.js"></script>
+	<script src="vector.js"></script>
+	<script src="webgl.js"></script>
+
+	<link rel="stylesheet" href="highlight.css">
+	<script src="highlight.js"></script>
+</head>
+<body>
+
+	<p>This is the fisheye effect from <a href="http://ludumdare.com/compo/ludum-dare-31/?action=preview&uid=3479">Birdsong</a>, Daniel Linssen's winning entry in Ludum Dare 31.  Use the arrow keys to move the center of the distortion around.</p>
+
+	<p>To give a comparison with straight WebGL code, this version doesn't use
+	my wrapper code except for the error check function which translates the
+	<code>getError()</code> numbers to human-readable strings.</p>
+
+	<canvas id="main" width="800" height="600" tabindex="1"></canvas>
+
+	<p class="center">
+	&lt;&lt; [<a href="fisheye.html">Fisheye</a>]
+	[<a href="./">Index</a>] &gt;&gt;
+	</p>
+
+	<script id="vertex" type="x-shader/x-vertex">
+attribute vec2 x, tex;
+
+varying vec2 uv;
+
+uniform mat3 view;
+
+void main(void) {
+	uv = tex;
+	gl_Position = vec4(vec3(x, 1) * view, 1);
+}
+	</script>
+
+	<script id="fragment" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec2 uv;
+
+uniform sampler2D img;
+
+uniform float distortion;
+uniform vec2 center;
+
+void main(void) {
+	vec2 offset = uv - center;
+	float stretch = 1.0 - 0.9 / (1.0 + distortion * pow(length(offset), 6.0));
+	gl_FragColor = texture2D(img, center + offset * stretch);
+}
+	</script>
+
+	<script id="program">
+'use strict';
+
+var canvas = document.getElementById('main');
+var gl = canvas.getContext('webgl');
+
+var ck = WebGL.check.bind(undefined, gl);
+
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); ck();
+gl.enable(gl.BLEND); ck();
+
+var w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+var aspect = w / h;
+var	l = -w/2, r = w/2;
+var b = -h/2, t = h/2;
+
+var texCenter = [0.5, 0.5];
+var texHalfSize = [0.5, 0.5];
+
+var texLeft = texCenter[0] - texHalfSize[0];
+var texRight = texCenter[0] + texHalfSize[0];
+
+var texBottom = texCenter[1] + texHalfSize[1];
+var texTop = texCenter[1] - texHalfSize[1];
+
+
+// compile vertex shader
+var vertexSource = document.getElementById('vertex').textContent;
+var vertexShader = gl.createShader(gl.VERTEX_SHADER); ck();
+gl.shaderSource(vertexShader, vertexSource); ck();
+gl.compileShader(vertexShader); ck();
+if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+	throw 'gl.compileShader(gl.VERTEX_SHADER): ' + gl.getShaderInfoLog(vertexShader);
+}
+
+// compile fragment shader
+var fragmentSource = document.getElementById('fragment').textContent;
+var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER); ck();
+gl.shaderSource(fragmentShader, fragmentSource); ck();
+gl.compileShader(fragmentShader); ck();
+if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+	throw 'gl.compileShader(gl.FRAGMENT_SHADER): ' + gl.getShaderInfoLog(fragmentShader);
+}
+
+// link vertex and fragment shaders into a full shader program
+var shader = gl.createProgram(); ck();
+gl.attachShader(shader, vertexShader); ck();
+gl.attachShader(shader, fragmentShader); ck();
+gl.linkProgram(shader); ck();
+if(gl.getProgramParameter(shader, gl.LINK_STATUS)) { 
+	// discard shader source/object code
+	gl.detachShader(shader, vertexShader); ck();
+	gl.deleteShader(vertexShader); ck();
+	gl.detachShader(shader, fragmentShader); ck();
+	gl.deleteShader(fragmentShader); ck();
+} else throw "gl.linkProgram: " + gl.getProgramInfoLog(shader);
+
+// get compiled locations of uniform (global) and attribute (per-vertex) values 
+//
+// note that the vertex indices don't have a location: they're distinguished by
+// being in an ELEMENT_ARRAY_BUFFER rather than an ARRAY_BUFFER.
+var distortionLoc = gl.getUniformLocation(shader, 'distortion'); ck();
+var centerLoc = gl.getUniformLocation(shader, 'center'); ck();
+var viewLoc = gl.getUniformLocation(shader, 'view'); ck();
+var imgLoc = gl.getUniformLocation(shader, 'img'); ck();
+
+var xLoc = gl.getAttribLocation(shader, 'x'); ck();
+var texLoc = gl.getAttribLocation(shader, 'tex'); ck();
+
+// create buffers for attributes and indices
+var xBuf = gl.createBuffer(); ck();
+var texBuf = gl.createBuffer(); ck();
+var indexBuf = gl.createBuffer(); ck();
+
+// values for uniforms and attributes
+var view = [[2.0/gl.drawingBufferWidth, 0, 0],
+		  [0, 2.0/gl.drawingBufferHeight, 0],
+		  [0, 0, 0]];
+var positions = [[r, t], [l, t], [r, b], [l, b]];
+var uvs = [[texRight, texTop], [texLeft, texTop], [texRight, texBottom], [texLeft, texBottom]];
+var indices = [0, 1, 2, 3];
+
+// state and functions to make it interactive with a GameMode
+var initialState = { distortion: 0.02, center: [0.579, 0.275] };
+
+var functions = {
+	draw: function(state) {
+		// set active shader program
+		gl.useProgram(shader); ck();
+
+		// set uniform values
+		gl.uniform1f(distortionLoc, state.distortion); ck();
+		gl.uniform2fv(centerLoc, state.center); ck();
+		gl.uniformMatrix3fv(viewLoc, false, M.flattenTranspose(view)); ck();
+		gl.activeTexture(gl.TEXTURE0); ck();
+		gl.bindTexture(gl.TEXTURE_2D, texture); ck();
+		gl.uniform1i(imgLoc, 0); ck();  // texture unit 0
+
+		// set vertex positions
+		var xData = new Float32Array(M.flatten(positions));
+		gl.bindBuffer(gl.ARRAY_BUFFER, xBuf); ck();
+		gl.bufferData(gl.ARRAY_BUFFER, xData, gl.STATIC_DRAW); ck();
+			// leave out the bufferData call if you're re-using the data which
+			// is already in the buffer...
+		gl.enableVertexAttribArray(xLoc); ck();
+		gl.vertexAttribPointer(xLoc, 2, gl.FLOAT, false, 0, 0); ck();
+			// OK...that's: 2-component vector of floats, not normalized,
+			// no stride (elements are immediately following each other),
+			// no starting offset.
+
+		// set vertex texture coordinates
+		var texData = new Float32Array(M.flatten(uvs));
+		gl.bindBuffer(gl.ARRAY_BUFFER, texBuf); ck();
+		gl.bufferData(gl.ARRAY_BUFFER, texData, gl.STATIC_DRAW); ck();
+		gl.enableVertexAttribArray(texLoc); ck();
+		gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0); ck();
+
+		// send vertex indices
+		var indexData = new Uint16Array(indices);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuf);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexData, gl.STATIC_DRAW); ck();
+
+		// the actual draw call (call drawArrays if not using indices).
+		gl.drawElements(gl.TRIANGLE_STRIP, indices.length, gl.UNSIGNED_SHORT, 0);
+			// Note that this call allows you to process an arbitrary sub-set of
+			// the vertices: it takes a starting offset (0) and a count of
+			// vertices to process.
+	}
+	,step: function(state, ds, utils) {
+		var controls = utils.arrows();
+		controls[1] = -controls[1];  // texture y is positive down
+		return {
+			distortion: Math.min(1200, state.distortion * 1.015),
+			center: V.add(state.center, V.x(controls, 0.002))
+		};
+	}
+}
+
+var texture, image = WebGL.loadImage("birdsong.png");
+WebGL.images.whenLoaded(go);
+function go() {
+	texture = new WebGL.Texture(gl, image, gl.RGBA, true);
+	new GameMode(initialState, functions, document.getElementById('main'));
+}
+	</script>
+
+	<script>var sources = ['vertex', 'fragment', 'program']</script>
+	<script src="highlight-sources.js"></script>
+
+</body>
+</html>
