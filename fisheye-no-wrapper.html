@@ -190,7 +190,16 @@ var functions = {
 var texture, image = WebGL.loadImage("birdsong.png");
 WebGL.images.whenLoaded(go);
 function go() {
-	texture = new WebGL.Texture(gl, image, gl.RGBA, true);
+	// create a texture from the image
+	// note nearest-neighbor filtering rather than bi-linear.
+	texture = gl.createTexture(); ck();
+	gl.activeTexture(gl.TEXTURE0); ck();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image); ck();
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); ck();
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); ck();
+
+	// set the game mode running.
 	new GameMode(initialState, functions, document.getElementById('main'));
 }
 	</script>
