@@ -67,21 +67,6 @@ var ck = WebGL.check.bind(undefined, gl);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); ck();
 gl.enable(gl.BLEND); ck();
 
-var w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
-var aspect = w / h;
-var	l = -w/2, r = w/2;
-var b = -h/2, t = h/2;
-
-var texCenter = [0.5, 0.5];
-var texHalfSize = [0.5, 0.5];
-
-var texLeft = texCenter[0] - texHalfSize[0];
-var texRight = texCenter[0] + texHalfSize[0];
-
-var texBottom = texCenter[1] + texHalfSize[1];
-var texTop = texCenter[1] - texHalfSize[1];
-
-
 // compile vertex shader
 var vertexSource = document.getElementById('vertex').textContent;
 var vertexShader = gl.createShader(gl.VERTEX_SHADER); ck();
@@ -130,12 +115,20 @@ var xBuf = gl.createBuffer(); ck();
 var texBuf = gl.createBuffer(); ck();
 var indexBuf = gl.createBuffer(); ck();
 
+
+
+var w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+var aspect = w / h;
+var	l = -w/2, r = w/2;
+var b = -h/2, t = h/2;
+
 // values for uniforms and attributes
-var view = [[2.0/gl.drawingBufferWidth, 0, 0],
-		  [0, 2.0/gl.drawingBufferHeight, 0],
-		  [0, 0, 0]];
+var view = [
+	[2/w, 0, 0],
+	[0, 2/h, 0],
+	[0, 0, 0]];
 var positions = [[r, t], [l, t], [r, b], [l, b]];
-var uvs = [[texRight, texTop], [texLeft, texTop], [texRight, texBottom], [texLeft, texBottom]];
+var       uvs = [[1, 0], [0, 0], [1, 1], [0, 1]];
 var indices = [0, 1, 2, 3];
 
 // state and functions to make it interactive with a GameMode
